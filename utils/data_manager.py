@@ -5,6 +5,22 @@ import os
 DATA_FILE = "data.xlsx"
 
 
+def _normalize_value(value, dtype=None):
+
+    if isinstance(value, str) and value.strip() == "":
+        if dtype is not None and dtype.kind == "M":
+            return pd.NaT
+        return pd.NA if dtype is not None and dtype.kind in "biufc" else ""
+
+    if hasattr(value, "year"):
+        return pd.to_datetime(value)
+
+    if dtype is not None and dtype.kind in "biufc" and isinstance(value, str):
+        return pd.to_numeric(value, errors="coerce")
+
+    return value
+
+
 def initialize_data_file(config):
 
     if os.path.exists(DATA_FILE):
@@ -17,7 +33,7 @@ def initialize_data_file(config):
 
     df = pd.DataFrame(columns=columns)
 
-    df.to_excel(DATA_FILE, index=False)
+    df.to_excel(DATA_FILE, index=False, engine="openpyxl")
 
 
 def load_data():
@@ -25,7 +41,15 @@ def load_data():
     if not os.path.exists(DATA_FILE):
         return pd.DataFrame()
 
-    return pd.read_excel(DATA_FILE)
+    if os.path.getsize(DATA_FILE) == 0:
+        os.remove(DATA_FILE)
+        return pd.DataFrame()
+
+    try:
+        return pd.read_excel(DATA_FILE, engine="openpyxl")
+    except (ValueError, OSError):
+        os.remove(DATA_FILE)
+        return pd.DataFrame()
 
 
 def get_next_id(df):
@@ -54,7 +78,7 @@ def save_record(form_data):
         ignore_index=True
     )
 
-    df.to_excel(DATA_FILE, index=False)
+    df.to_excel(DATA_FILE, index=False, engine="openpyxl")
     
 
 def update_record(record_id, updated_data):
@@ -63,10 +87,11 @@ def update_record(record_id, updated_data):
 
     for column, value in updated_data.items():
 
-        # CONVERTIR FECHAS
-        if hasattr(value, "year"):
-            value = pd.to_datetime(value)
+        if column not in df.columns:
+            continue
+
+        value = _normalize_value(value, df[column].dtype)
 
         df.loc[df["id"] == record_id, column] = value
 
-    df.to_excel(DATA_FILE, index=False)
+    df.to_excel(DATA_FILE, index=False, engine="openpyxl")
