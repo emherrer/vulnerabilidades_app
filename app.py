@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import datetime
 
 from utils.config_loader import load_config
 from utils.form_generator import render_form
@@ -20,9 +21,20 @@ config = load_config("config.xlsx")
 initialize_data_file(config)
 
 # -----------------------------
+# SESSION STATE
+# -----------------------------
+if "success_message" not in st.session_state:
+    st.session_state.success_message = None
+
+# -----------------------------
 # TITLE
 # -----------------------------
 st.title("Vulnerabilidades Laguna Seca")
+
+# -----------------------------
+# LOAD DATA
+# -----------------------------
+df = load_data()
 
 # -----------------------------
 # FORM
@@ -44,15 +56,10 @@ if submitted_create:
 
     save_record(form_data)
 
-    st.success("Registro guardado correctamente")
+    st.session_state.success_message = "Registro guardado correctamente"
     
-    st.rerun()
-
-
-# -----------------------------
-# LOAD DATA
-# -----------------------------
-df = load_data()
+    # RECARGAR DATOS
+    df = load_data()
 
 # -----------------------------
 # EDITION
@@ -89,12 +96,21 @@ if not df.empty:
             selected_id,
             edited_data
         )
+        st.session_state.success_message = "Registro actualizado"
+        
+        # RECARGAR DATOS
+        df = load_data()
+        
+# -----------------------------
+# SHOW SUCCESS MESSAGE
+# -----------------------------
+if st.session_state.success_message:
 
-        st.success("Registro actualizado")
+    st.success(st.session_state.success_message)
 
-        st.rerun()
-
-
+    # LIMPIAR DESPUÉS DE MOSTRAR
+    st.session_state.success_message = None
+    
 # -----------------------------
 # SHOW DATA
 # -----------------------------
