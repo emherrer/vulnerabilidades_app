@@ -55,17 +55,6 @@ if submitted_create:
 df = load_data()
 
 # -----------------------------
-# SHOW DATA
-# -----------------------------
-st.header("Lista de Registros")
-
-display_df = df.copy()
-display_df = display_df.fillna("")
-
-st.dataframe(display_df)
-
-    
-# -----------------------------
 # EDITION
 # -----------------------------
 st.header("Editar Registro")
@@ -105,3 +94,13 @@ if not df.empty:
 
         st.rerun()
 
+
+# -----------------------------
+# SHOW DATA
+# -----------------------------
+st.header("Lista de Registros")
+
+display_df = df.copy()
+display_df = display_df.fillna("")
+
+st.dataframe(display_df)
