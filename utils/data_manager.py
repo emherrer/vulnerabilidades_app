@@ -95,3 +95,19 @@ def update_record(record_id, updated_data):
         df.loc[df["id"] == record_id, column] = value
 
     df.to_excel(DATA_FILE, index=False, engine="openpyxl")
+
+
+def delete_record(record_id):
+
+    df = load_data()
+
+    if df.empty:
+        return
+
+    df = df[df["id"] != record_id]
+
+    if "id" in df.columns and not df.empty:
+        df = df.sort_values("id", ignore_index=True)
+        df["id"] = range(1, len(df) + 1)
+
+    df.to_excel(DATA_FILE, index=False, engine="openpyxl")

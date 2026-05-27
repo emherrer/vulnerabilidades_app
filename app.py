@@ -7,7 +7,8 @@ from utils.data_manager import (
     initialize_data_file,
     save_record,
     load_data,
-    update_record
+    update_record,
+    delete_record
 )
 
 # -----------------------------
@@ -102,6 +103,27 @@ if not df.empty:
         df = load_data()
         
 # -----------------------------
+# DELETE RECORD
+# -----------------------------
+st.header("Eliminar Registro")
+
+if not df.empty:
+
+    selected_id_delete = st.selectbox(
+        "Seleccionar ID para eliminar",
+        df["id"].tolist(),
+        key="selected_id_delete"
+    )
+
+    if st.button("Eliminar Registro"):
+
+        delete_record(selected_id_delete)
+        st.session_state.success_message = "Registro eliminado"
+
+        # RECARGAR DATOS
+        df = load_data()
+        
+# -----------------------------
 # SHOW SUCCESS MESSAGE
 # -----------------------------
 if st.session_state.success_message:
@@ -119,4 +141,8 @@ st.header("Lista de Registros")
 display_df = df.copy()
 display_df = display_df.fillna("")
 
-st.dataframe(display_df)
+if "id" in display_df.columns:
+    cols = ["id"] + [c for c in display_df.columns if c != "id"]
+    display_df = display_df[cols]
+
+st.dataframe(display_df.reset_index(drop=True))
